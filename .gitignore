@@ -1,0 +1,5 @@
+# Folder for docker images
+deploy
+
+.env
+.env*
