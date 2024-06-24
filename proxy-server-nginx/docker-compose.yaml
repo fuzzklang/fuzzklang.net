@@ -1,0 +1,32 @@
+version: "3"
+
+services:
+  nginx:
+    container_name: "nginx_server"
+    build:
+      context: ./config
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./config:/config
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /tmp/acme-challenge:/tmp/acme-challenge
+    networks:
+      - app
+    restart: always
+
+  letsencrypt:
+    container_name: "certbot"
+    image: certbot/certbot
+    command: sh -c "certbot certonly --webroot -w /tmp/acme-challenge/ -d fuzzklang.net --text --agree-tos --email fuzzklang@gmail.com --rsa-key-size 4096 --verbose --keep-until-expiring --preferred-challenges=http"
+    entrypoint: ""
+    volumes:
+      - "/etc/letsencrypt:/etc/letsencrypt"
+      - "/tmp/acme-challenge:/tmp/acme-challenge"
+    environment:
+      - TERM=xterm
+
+networks:
+  app:
+    driver: bridge

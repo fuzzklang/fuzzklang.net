@@ -1,9 +1,10 @@
 SERVER_URL_AND_HOST=""
 DOCKER_NETWORK_NAME=""
+DOCKER_DEFAULT_PORT=""
 
 source ./.env
 
-if [ ! $SERVER_URL_AND_HOST  ] || [ ! $DOCKER_NETWORK_NAME ]; then
+if [ ! $SERVER_URL_AND_HOST  ] || [ ! $DOCKER_NETWORK_NAME ] || [ ! $DOCKER_DEFAULT_PORT ]; then
     echo "Missing env variables, exiting."
     exit
 fi
@@ -19,7 +20,7 @@ function usage () {
     echo "-r:(optional): Restart only. Skips copying of docker image to server."
 }
 
-while getopts "hd:n:xp" OPTION
+while getopts "hd:n:r" OPTION
     do
     case $OPTION in
         h)
@@ -32,11 +33,8 @@ while getopts "hd:n:xp" OPTION
         n)
         SERVICE_NAME=$OPTARG
         ;;
-        x)
+        r)
         RESTART_ONLY="true"
-        ;;
-        p)
-        PORT="-p $OPTARG"
         ;;
     esac
 done
@@ -66,14 +64,14 @@ function deploy_service() {
     echo "Stopping and removing old container" ;
     ssh $SERVER_URL_AND_HOST "docker stop $SERVICE_NAME 2>/dev/null && docker rm $SERVICE_NAME 2>/dev/null" ;
     echo "Starting new container" ;
-    ssh $SERVER_URL_AND_HOST "docker run --name $SERVICE_NAME --network $NETWORK_NAME $PORT -it -d $SERVICE_NAME";
+    ssh $SERVER_URL_AND_HOST "docker run --name $SERVICE_NAME --network $DOCKER_NETWORK_NAME -p $DOCKER_DEFAULT_PORT -it -d $SERVICE_NAME";
 }
 
 
 function print_runtime_env () {
     echo "Service name:      $SERVICE_NAME"
     echo "Working directory: $WORKDIR"
-    echo "Port:              $PORT"
+    echo "Port:              $DOCKER_DEFAULT_PORT"
     echo "Restart only:      $RESTART_ONLY"
 }
 
